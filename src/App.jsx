@@ -3,7 +3,6 @@ import DashBoard from "./pages/DashBoard";
 import Termos from "./pages/Termos";
 import Quiz from "./pages/Quiz";
 import Login from "./pages/Login";
-import Home from "./pages/Home";
 import Progresso from "./pages/Progresso";
 import Layout from "./components/Layout";
 import Register from "./pages/Register";
@@ -13,8 +12,7 @@ function App() {
   return (
     <Routes>
       {/* Rotas públicas */}
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       {/* Rotas internas com layout compartilhado */}
