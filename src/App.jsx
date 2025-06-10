@@ -8,20 +8,30 @@ import Layout from "./components/Layout";
 import Register from "./pages/Register";
 import Perfil from "./pages/Perfil";
 
+// A LINHA QUE FALTAVA ESTÁ AQUI:
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <Routes>
       {/* Rotas públicas */}
-      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Rotas internas com layout compartilhado */}
-      <Route element={<Layout />}>
+      {/* Rotas internas com layout compartilhado e protegidas */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/dashboard" element={<DashBoard />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/termos" element={<Termos />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/progresso" element={<Progresso />} />
-        <Route path="/perfil" element={<Perfil />} /> {/* ✅ novo */}
+        <Route path="/perfil" element={<Perfil />} />
       </Route>
 
       {/* Rota fallback para páginas inexistentes */}
