@@ -1,55 +1,52 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "./firebase-config.js";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth'; // Usa nosso hook centralizado
+import { Loader } from 'lucide-react';
 
 export default function Register() {
-  // --- HOOKS NO NÍVEL SUPERIOR ---
-  // Hooks sempre vêm primeiro, no topo do componente.
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  // (Opcional) Adicione um estado para o nome se precisar dele
-  const [name, setName] = useState("");
+  const { register } = useAuth(); // Pega a função 'register' do contexto
 
-  // --- FUNÇÕES DE LÓGICA ---
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Função para lidar com o registro do usuário
   const handleRegister = async (event) => {
-    // 1. Previne o comportamento padrão do formulário (recarregar a página)
     event.preventDefault();
-
-    if (!email || !password) {
-      alert("Por favor, preencha email e senha.");
+    if (!name || !email || !password) {
+      setError("Todos os campos são obrigatórios.");
       return;
     }
+    
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("Usuário registrado:", userCredential.user);
-      alert("Registro realizado com sucesso! Redirecionando para o login...");
-      navigate("/login"); // 2. Redireciona após o sucesso
-    } catch (error) {
-      console.error("Erro no registro:", error.message);
-      // Personaliza a mensagem de erro para o usuário
-      if (error.code === "auth/email-already-in-use") {
-        alert("Este e-mail já está em uso.");
+      // Chama a função unificada do nosso contexto.
+      // O componente não sabe mais sobre Firebase, apenas sobre 'register'.
+      await register(name, email, password);
+      
+      alert("Registro realizado com sucesso! Agora você pode fazer o login.");
+      navigate('/login');
+
+    } catch (err) {
+      console.error("Erro no registro:", err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError("Este endereço de e-mail já está em uso.");
+      } else if (err.code === 'auth/weak-password') {
+        setError("A senha deve ter no mínimo 6 caracteres.");
       } else {
-        alert("Ocorreu um erro no registro: " + error.message);
+        setError("Ocorreu um erro inesperado. Tente novamente.");
       }
+    } finally {
+      // Garante que o botão seja reativado mesmo se ocorrer um erro.
+      setIsSubmitting(false);
     }
   };
 
-  // Função para navegar de volta para a página de login
-  const voltarParaLogin = () => {
-    navigate("/login");
-  };
-
-  // --- JSX (A parte visual do componente) ---
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-xl w-full max-w-md p-8 space-y-6">
@@ -57,79 +54,62 @@ export default function Register() {
           Criar Conta
         </h2>
 
-        {/* 3. Use o evento onSubmit do formulário */}
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nome completo
-            </label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nome completo</label>
             <input
               id="name"
               type="text"
               placeholder="João da Silva"
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              value={name} // 4. Conecte o estado ao input
+              value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              E-mail
-            </label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">E-mail</label>
             <input
               id="email"
               type="email"
               placeholder="voce@exemplo.com"
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              value={email} // 4. Conecte o estado ao input
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Senha
-            </label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Senha</label>
             <input
               id="password"
               type="password"
-              placeholder="********"
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              value={password} // 4. Conecte o estado ao input
+              placeholder="Mínimo 6 caracteres"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm"
             />
           </div>
 
-          {/* 5. O botão agora é do tipo "submit" para acionar o onSubmit do form */}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+            disabled={isSubmitting}
+            className="w-full flex justify-center items-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:bg-blue-300"
           >
-            Cadastrar
+            {isSubmitting ? <Loader className="animate-spin" /> : 'Cadastrar'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500">
           Já tem uma conta?{" "}
-          <button
-            onClick={voltarParaLogin}
-            className="font-medium text-blue-600 hover:underline"
-          >
+          <Link to="/login" className="font-medium text-blue-600 hover:underline">
             Entrar
-          </button>
+          </Link>
         </p>
       </div>
     </main>

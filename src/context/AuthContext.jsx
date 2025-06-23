@@ -5,12 +5,10 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { auth } from "../pages/firebase-config";
+import { auth, db } from "../pages/firebase-config";
+import { doc, setDoc } from "firebase/firestore";
 
-// Passo 1: Exporte o Context diretamente para que outros arquivos (como o nosso hook) possam importá-lo.
 export const AuthContext = createContext();
-
-// Passo 2: A função e exportação do 'useAuth' foram REMOVIDAS daqui.
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -20,8 +18,32 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
-  function register(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
+  // A CORREÇÃO ESTÁ AQUI:
+  // 1. A função 'register' agora é declarada como 'async'.
+  async function register(name, email, password) {
+    try {
+      // 2. O 'new Promise' foi removido. Usamos try/catch diretamente.
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        name: name,
+        email: email,
+        createdAt: new Date(),
+      });
+
+      // 3. Ao retornar um valor em uma função async, a Promise implícita é resolvida com esse valor.
+      return userCredential;
+    } catch (error) {
+      // 4. Ao lançar um erro, a Promise implícita é rejeitada com esse erro.
+      // Isso permite que o componente que chamou 'register' use seu próprio bloco catch.
+      console.error("Erro detalhado no registro (AuthContext):", error);
+      throw error;
+    }
   }
 
   function logout() {
@@ -30,7 +52,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // Seu console.log funcional foi mantido intacto.
       console.log(
         "AUTH_CONTEXT: Listener do Firebase disparou. Novo estado do usuário:",
         user
