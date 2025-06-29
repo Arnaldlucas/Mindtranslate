@@ -101,8 +101,7 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 **[SEU NOME]**
 
-- LinkedIn: www.linkedin.com/in/
-arnald-bentes-lucas
+- LinkedIn: www.linkedin.com/in/arnald-bentes-lucas
 
 - E-mail: arnald.lucas@ufam.edu.br
 
