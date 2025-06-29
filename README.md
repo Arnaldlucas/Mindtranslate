@@ -101,7 +101,9 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 **[SEU NOME]**
 
-- LinkedIn: [URL_DO_SEU_LINKEDIN]
-- E-mail: SEU_EMAIL@exemplo.com
+- LinkedIn: www.linkedin.com/in/
+arnald-bentes-lucas
+
+- E-mail: arnald.lucas@ufam.edu.br
 
 ---
