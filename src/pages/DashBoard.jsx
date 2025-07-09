@@ -1,90 +1,106 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { db } from "./firebase-config";
+import { collection, getDocs } from "firebase/firestore";
 import { BookOpen, HelpCircle, BarChart3 } from "lucide-react";
 
-// 1. A constante 'cards' foi movida para fora do componente.
-// Ela só é criada uma vez quando o módulo é carregado.
-const cards = [
+// O array de cards agora é a nossa única fonte para os cards.
+const staticCards = [
   {
-    id: "termos", // Usar um ID único é melhor que o índice para a key do React.
+    id: "termos",
     title: "Tradução de Termos",
     desc: "Aprenda a tradução de palavras técnicas do código com exemplos práticos.",
     to: "/termos",
-    icon: <BookOpen className="text-blue-500 w-6 h-6 mb-3" />,
+    icon: <BookOpen className="text-blue-500 w-8 h-8" />,
   },
   {
     id: "quiz",
     title: "Quiz Interativo",
     desc: "Teste seus conhecimentos com quizzes rápidos e divertidos.",
     to: "/quiz",
-    icon: <HelpCircle className="text-blue-500 w-6 h-6 mb-3" />,
+    icon: <HelpCircle className="text-blue-500 w-8 h-8" />,
   },
   {
     id: "progresso",
     title: "Progressão de Aprendizado",
     desc: "Acompanhe seu progresso com relatórios e estatísticas.",
     to: "/progresso",
-    icon: <BarChart3 className="text-blue-500 w-6 h-6 mb-3" />,
+    icon: <BarChart3 className="text-blue-500 w-8 h-8" />,
   },
 ];
 
 export default function DashBoard() {
-  // 2. Usamos o hook para obter os dados do usuário real.
   const { currentUser } = useAuth();
+  const [quizzesFeitos, setQuizzesFeitos] = useState(0);
 
-  // Extrai o primeiro nome para uma saudação mais pessoal.
-  const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split('@')[0] || "Usuário";
+  // A lógica de fetch foi simplificada, pois não precisamos mais dos detalhes do último quiz.
+  useEffect(() => {
+    const fetchProgressSummary = async () => {
+      if (!currentUser) return;
+      const progressCollectionRef = collection(db, "users", currentUser.uid, "quizProgress");
+      const querySnapshot = await getDocs(progressCollectionRef);
+      setQuizzesFeitos(querySnapshot.size); // .size é mais eficiente que .docs.map().length
+    };
+    fetchProgressSummary();
+  }, [currentUser]);
+
+  const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split("@")[0] || "Usuário";
 
   return (
-    <div className="min-h-screen text-gray-800 bg-gradient-to-b from-blue-50 via-blue-100 to-white">
-      {/* Boas-vindas com imagem e personalização */}
-      <section className="text-center max-w-3xl mx-auto mb-12 px-4">
-        <img
-          src="/welcome-illustration.svg"
-          alt="Bem-vindo"
-          className="w-full max-w-md mx-auto mb-10"
-          loading="lazy" // 3. Otimização de performance da imagem.
-          decoding="async"
-        />
-        {/* 4. Saudação personalizada */}
-        <h2 className="text-3xl font-bold mb-2">Bem-vindo, {firstName}!</h2>
-        <p className="text-gray-600 text-lg">
-          Aprenda os termos mais usados na programação de forma simples, visual
-          e interativa.
-        </p>
-        {/* 5. Navegação declarativa com Link */}
-        <Link
-          to="/termos"
-          className="mt-6 inline-block px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition"
-        >
-          Comece agora
-        </Link>
-      </section>
+    <div className="relative w-full min-h-full bg-blue-50 overflow-hidden">
+      
+      {/* 1. Imagem de fundo agora está 50% mais transparente (opacity-10) */}
+      <img
+        src="/welcome-illustration.svg"
+        alt=""
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-4xl opacity-10 z-0 pointer-events-none"
+        aria-hidden="true"
+      />
 
-      {/* Cards agora são Links clicáveis */}
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto px-4">
-        {cards.map((card) => (
-          // 6. O card inteiro agora é um Link, tornando-o acessível e semântico.
-          <Link
-            to={card.to}
-            key={card.id}
-            className="block bg-white p-6 rounded-lg shadow-md hover:shadow-xl hover:border hover:border-blue-400 transition transform hover:scale-[1.03]"
-          >
-            {card.icon}
-            <h3 className="text-xl font-semibold mb-2">{card.title}</h3>
-            <p className="text-gray-600 text-sm leading-relaxed tracking-wide">
-              {card.desc}
-            </p>
-          </Link>
-        ))}
-      </section>
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16">
+        
+        {/* Seção de Boas-vindas (sem o botão) */}
+        <section className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {firstName}!</h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            {quizzesFeitos > 0
+              ? `Você já completou ${quizzesFeitos} quiz(zes). Continue seu aprendizado!`
+              : "Explore as seções abaixo para começar sua jornada no mundo da programação."
+            }
+          </p>
+        </section>
 
-      {/* Frase de destaque (sem alterações necessárias) */}
-      <section className="mt-16 text-center px-4">
-        <blockquote className="italic text-indigo-700 text-xl font-medium max-w-xl mx-auto">
-          "Aprender a linguagem da tecnologia é como ganhar superpoderes."
-        </blockquote>
-      </section>
+        {/* 2. Seção dos Cards com grid responsivo para 3 itens */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {staticCards.map((card) => (
+            <Link
+              to={card.to}
+              key={card.id}
+              className="flex flex-col items-center text-center bg-white/70 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+            >
+              <div className="bg-blue-100 p-4 rounded-full mb-4">
+                {card.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">{card.title}</h3>
+              <p className="text-gray-600 text-sm leading-relaxed tracking-wide flex-grow">
+                {card.desc}
+              </p>
+            </Link>
+          ))}
+        </section>
+
+        {/* 3. Botão "Comece a aprender" agora está aqui, abaixo dos cards */}
+        <section className="mt-16 text-center">
+            <Link
+                to="/termos"
+                className="inline-block px-8 py-3 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition shadow-lg"
+            >
+                Comece a aprender
+            </Link>
+        </section>
+        
+      </div>
     </div>
   );
 }
