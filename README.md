@@ -11,7 +11,6 @@
 <p align="center">
   <img src="URL_DO_SEU_GIF_AQUI" alt="Demonstração do MindTranslate em ação" width="80%">
 </p>
-> **Nota:** Grave um GIF ou vídeo curto da sua aplicação e substitua o link acima. É a melhor forma de apresentar seu trabalho!
 
 ## 📜 Sobre o Projeto
 
@@ -63,7 +62,7 @@ Para executar o MindTranslate no seu ambiente de desenvolvimento, siga os passos
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git](https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git)
+    git clone https://github.com/Arnaldlucas/Mindtranslate.git
     cd SEU_REPOSITORIO
     ```
 
