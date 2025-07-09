@@ -1,13 +1,129 @@
-import { useNavigate } from "react-router-dom";
-import { BarChart } from "lucide-react";
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { db } from './firebase-config';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { BarChart, Loader, AlertCircle, TrendingUp, CheckCircle } from 'lucide-react';
+
+// Componentes de UI para manter o JSX principal limpo
+const LoadingState = () => (
+  <div className="flex justify-center items-center py-16">
+    <Loader className="animate-spin text-green-600" size={32} />
+  </div>
+);
+
+const ErrorState = ({ message }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-red-500">
+    <AlertCircle size={32} />
+    <p className="mt-4 text-center">{message}</p>
+  </div>
+);
+
+const EmptyState = () => (
+  <div className="text-center py-16 px-6 bg-white rounded-xl border">
+    <h3 className="text-lg font-semibold text-gray-800">Nenhum quiz realizado ainda!</h3>
+    <p className="text-gray-500 mt-2">Comece um quiz para ver seu progresso aqui.</p>
+    <Link to="/quiz" className="mt-4 inline-block px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">
+      Começar um Quiz
+    </Link>
+  </div>
+);
+
 
 export default function Progresso() {
-  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [quizHistory, setQuizHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const Progresso = {
-    quizzesFeitos: 8,
-    termosAprendidos: 23,
-    percentualConcluido: 65,
+  // 1. Busca o histórico de progresso do usuário no Firestore
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const progressCollectionRef = collection(db, 'users', currentUser.uid, 'quizProgress');
+        const q = query(progressCollectionRef, orderBy('completedAt', 'desc')); // Mais recentes primeiro
+        const querySnapshot = await getDocs(q);
+        const historyData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setQuizHistory(historyData);
+      } catch (err) {
+        console.error("Erro ao buscar progresso:", err);
+        setError("Não foi possível carregar seu histórico. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProgress();
+  }, [currentUser]);
+
+  // 2. Calcula as estatísticas de forma otimizada com useMemo.
+  // Este cálculo só é refeito se o histórico de quizzes mudar.
+  const stats = useMemo(() => {
+    if (quizHistory.length === 0) {
+      return { quizzesFeitos: 0, termosAprendidos: 0, percentualMedio: 0 };
+    }
+    const quizzesFeitos = quizHistory.length;
+    const termosAprendidos = quizHistory.reduce((total, quiz) => total + quiz.score, 0);
+    const totalPercentage = quizHistory.reduce((total, quiz) => total + quiz.percentage, 0);
+    const percentualMedio = Math.round(totalPercentage / quizzesFeitos);
+
+    return { quizzesFeitos, termosAprendidos, percentualMedio };
+  }, [quizHistory]);
+
+  const renderContent = () => {
+    if (loading) return <LoadingState />;
+    if (error) return <ErrorState message={error} />;
+    if (quizHistory.length === 0) return <EmptyState />;
+
+    return (
+      <>
+        {/* Métricas Agregadas */}
+        <div className="bg-white shadow-md rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-600">Quizzes Concluídos</h2>
+            <p className="text-3xl font-bold text-green-600">{stats.quizzesFeitos}</p>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-600">Total de Acertos</h2>
+            <p className="text-3xl font-bold text-green-600">{stats.termosAprendidos}</p>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-600">Desempenho Médio</h2>
+            <p className="text-3xl font-bold text-green-600">{stats.percentualMedio}%</p>
+          </div>
+        </div>
+
+        {/* Histórico Detalhado */}
+        <div className="mt-10">
+          <h2 className="text-xl font-bold mb-4">Histórico de Atividades</h2>
+          <div className="bg-white shadow-md rounded-xl p-4 space-y-4">
+            {quizHistory.map(quiz => (
+              <div key={quiz.id} className="flex items-center justify-between p-3 border-b last:border-b-0">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className={quiz.percentage >= 70 ? 'text-green-500' : 'text-yellow-500'} />
+                  <div>
+                    <p className="font-semibold">Quiz de Fundamentos</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(quiz.completedAt.seconds * 1000).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-lg">{quiz.score}/{quiz.totalQuestions}</p>
+                  <p className="text-sm text-gray-500">{quiz.percentage}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -17,39 +133,11 @@ export default function Progresso() {
           <BarChart className="text-green-600 w-6 h-6" />
           <h1 className="text-2xl font-bold">Seu Progresso</h1>
         </div>
-
-        <div className="bg-white shadow-md rounded-xl p-6 space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold">Quizzes realizados:</h2>
-            <p className="text-gray-600 text-xl">{Progresso.quizzesFeitos}</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Termos aprendidos:</h2>
-            <p className="text-gray-600 text-xl">
-              {Progresso.termosAprendidos}
-            </p>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Conclusão da jornada:</h2>
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <div
-                className="bg-green-500 h-4 rounded-full"
-                style={{ width: `${Progresso.percentualConcluido}%` }}
-              ></div>
-            </div>
-            <p className="text-gray-700 mt-1">
-              {Progresso.percentualConcluido}% concluído
-            </p>
-          </div>
-        </div>
-
+        {renderContent()}
         <div className="mt-12 text-center">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition"
-          >
+          <Link to="/dashboard" className="px-6 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">
             Voltar ao Início
-          </button>
+          </Link>
         </div>
       </div>
     </div>
