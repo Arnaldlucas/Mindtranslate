@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong><a href="URL_DO_SEU_DEPLOY_AQUI">Acessar a Demo Ao Vivo</a></strong>
+  <strong><a href="https://mindtranslate-git-main-arnald-lucas-projects.vercel.app">Acessar a Demo Ao Vivo</a></strong>
 </p>
 
 <p align="center">
