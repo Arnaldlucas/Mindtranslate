@@ -8,9 +8,6 @@
   <strong><a href="https://mindtranslate-git-main-arnald-lucas-projects.vercel.app">Acessar a Demo Ao Vivo</a></strong>
 </p>
 
-<p align="center">
-  <img src="URL_DO_SEU_GIF_AQUI" alt="Demonstração do MindTranslate em ação" width="80%">
-</p>
 
 ## 📜 Sobre o Projeto
 
@@ -98,7 +95,7 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ## 👤 Contato
 
-**[SEU NOME]**
+**ARNALD BENTES LUCAS**
 
 - LinkedIn: www.linkedin.com/in/arnald-bentes-lucas
 
