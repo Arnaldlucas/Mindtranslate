@@ -1,4 +1,4 @@
-# 🧠 MindTranslate
+#  MindTranslate
 
 <p align="center">
   Uma plataforma web interativa projetada para ajudar estudantes e desenvolvedores a dominar o vocabulário técnico do mundo da programação de forma visual, prática e gamificada.
@@ -9,13 +9,13 @@
 </p>
 
 
-## 📜 Sobre o Projeto
+##  Sobre o Projeto
 
 A barreira do jargão técnico é um dos maiores desafios para quem está entrando na área de tecnologia. O MindTranslate nasceu para resolver exatamente essa dor, oferecendo uma ferramenta centralizada para aprender, praticar e acompanhar o progresso no estudo dos termos essenciais da programação.
 
 O projeto foi construído do zero como um case de estudo completo, demonstrando uma arquitetura de aplicação moderna com React e Firebase.
 
-## ✨ Funcionalidades
+##  Funcionalidades
 
 - **✅ Autenticação de Usuários:** Sistema completo de registro e login utilizando Firebase Authentication.
 - **✅ Rotas Protegidas:** Acesso a páginas internas somente para usuários autenticados.
@@ -27,7 +27,7 @@ O projeto foi construído do zero como um case de estudo completo, demonstrando 
 - **⬜ Acompanhamento de Progresso:** (Próxima feature) Uma dashboard para visualizar o histórico de quizzes e estatísticas de aprendizado.
 - **⬜ Gamificação:** (Próxima feature) Sistema de pontos, níveis e conquistas para engajar o usuário.
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠 Tecnologias Utilizadas
 
 Este projeto foi construído com um conjunto de tecnologias modernas e robustas, focando em performance e escalabilidade.
 
@@ -46,7 +46,7 @@ Este projeto foi construído com um conjunto de tecnologias modernas e robustas,
 - **Gerenciamento de Estado:**
   - **React Context API:** Para gerenciamento do estado de autenticação global de forma limpa e desacoplada.
 
-## 🚀 Como Rodar o Projeto Localmente
+##  Como Rodar o Projeto Localmente
 
 Para executar o MindTranslate no seu ambiente de desenvolvimento, siga os passos abaixo.
 
