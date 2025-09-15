@@ -10,17 +10,24 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); //adicionado
   
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRegister = async (event) => {
     event.preventDefault();
-    if (!name || !email || !password) {
+
+    if (!name || !email || !password || !confirmPassword) { //adicionado
       setError("Todos os campos são obrigatórios.");
       return;
     }
-    
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -89,6 +96,20 @@ export default function Register() {
               placeholder="Mínimo 6 caracteres"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+        
+
+          <div> <!-- Adicionado-->
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirme a senha</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Repita sua senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm"
             />
