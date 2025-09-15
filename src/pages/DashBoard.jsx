@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { db } from "./firebase-config";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { BookOpen, HelpCircle, BarChart3 } from "lucide-react";
 
 // O array de cards agora é a nossa única fonte para os cards.
@@ -35,21 +35,38 @@ export default function DashBoard() {
   const [quizzesFeitos, setQuizzesFeitos] = useState(0);
 
   // A lógica de fetch foi simplificada, pois não precisamos mais dos detalhes do último quiz.
+  // 2. A lógica de fetch foi alterada para usar um listener em tempo real
   useEffect(() => {
-    const fetchProgressSummary = async () => {
-      if (!currentUser) return;
-      const progressCollectionRef = collection(db, "users", currentUser.uid, "quizProgress");
-      const querySnapshot = await getDocs(progressCollectionRef);
-      setQuizzesFeitos(querySnapshot.size); // .size é mais eficiente que .docs.map().length
-    };
-    fetchProgressSummary();
+    if (!currentUser) return;
+
+    // Cria a referência para a subcoleção de progresso do usuário
+    const progressCollectionRef = collection(
+      db,
+      "users",
+      currentUser.uid,
+      "quizProgress"
+    );
+    const q = query(progressCollectionRef);
+
+    // onSnapshot "escuta" as mudanças na coleção em tempo real.
+    // Ele é ativado uma vez no início e depois a cada nova mudança.
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      // Atualiza o estado com o número de quizzes toda vez que houver uma alteração.
+      setQuizzesFeitos(querySnapshot.size);
+    });
+
+    // 3. A função de limpeza é crucial para parar de "escutar" quando o usuário
+    // sai da página, evitando vazamentos de memória.
+    return () => unsubscribe();
   }, [currentUser]);
 
-  const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split("@")[0] || "Usuário";
+  const firstName =
+    currentUser?.displayName?.split(" ")[0] ||
+    currentUser?.email.split("@")[0] ||
+    "Usuário";
 
   return (
     <div className="relative w-full min-h-full bg-blue-50 overflow-hidden">
-      
       {/* 1. Imagem de fundo agora está 50% mais transparente (opacity-10) */}
       <img
         src="/welcome-illustration.svg"
@@ -59,15 +76,15 @@ export default function DashBoard() {
       />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16">
-        
         {/* Seção de Boas-vindas (sem o botão) */}
         <section className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {firstName}!</h2>
+          <h2 className="text-4xl font-bold mb-2 text-gray-900">
+            Bem-vindo, {firstName}!
+          </h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             {quizzesFeitos > 0
               ? `Você já completou ${quizzesFeitos} quiz(zes). Continue seu aprendizado!`
-              : "Explore as seções abaixo para começar sua jornada no mundo da programação."
-            }
+              : "Explore as seções abaixo para começar sua jornada no mundo da programação."}
           </p>
         </section>
 
@@ -82,7 +99,9 @@ export default function DashBoard() {
               <div className="bg-blue-100 p-4 rounded-full mb-4">
                 {card.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">{card.title}</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                {card.title}
+              </h3>
               <p className="text-gray-600 text-sm leading-relaxed tracking-wide flex-grow">
                 {card.desc}
               </p>
@@ -92,14 +111,13 @@ export default function DashBoard() {
 
         {/* 3. Botão "Comece a aprender" agora está aqui, abaixo dos cards */}
         <section className="mt-16 text-center">
-            <Link
-                to="/termos"
-                className="inline-block px-8 py-3 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition shadow-lg"
-            >
-                Comece a aprender
-            </Link>
+          <Link
+            to="/termos"
+            className="inline-block px-8 py-3 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition shadow-lg"
+          >
+            Comece a aprender
+          </Link>
         </section>
-        
       </div>
     </div>
   );
