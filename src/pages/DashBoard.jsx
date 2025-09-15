@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { db } from "./firebase-config";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore"; // Importe 'doc' e 'getDoc'
+import { collection, query, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { BookOpen, HelpCircle, BarChart3, Loader } from "lucide-react";
+
 
 // O array de cards agora é a nossa única fonte para os cards.
 const staticCards = [
@@ -40,7 +41,12 @@ export default function DashBoard() {
   const [userName, setUserName] = useState("Usuário");
   const [loading, setLoading] = useState(true);
 
-  // ✅ NOVO: useEffect para buscar o nome do usuário no Firestore
+// ✅ Mantemos os novos estados para o nome do usuário e o carregamento.
+  const [userName, setUserName] = useState("Usuário");
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Mantemos este useEffect da branch "fix/dashboard-nome-boas-vindas"
+  // para buscar o nome completo do usuário UMA ÚNICA VEZ.
   useEffect(() => {
     const fetchUserName = async () => {
       if (!currentUser) {
@@ -51,12 +57,12 @@ export default function DashBoard() {
         const docRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          // Se o documento existe, pega o nome e atualiza o estado
+        if (docSnap.exists() && docSnap.data().name) {
+          // Se o documento existe e tem um nome, usa ele.
           setUserName(docSnap.data().name);
         } else {
-          console.log("Nenhum nome encontrado no Firestore.");
-          // Mantém o nome padrão "Usuário"
+          // Se não, usa o nome de exibição do Auth ou o email como alternativa.
+          setUserName(currentUser.displayName || currentUser.email?.split('@')[0] || "Usuário");
         }
       } catch (err) {
         console.error("Erro ao buscar o nome:", err);
@@ -67,21 +73,30 @@ export default function DashBoard() {
 
     fetchUserName();
   }, [currentUser]);
-
-  // A lógica de fetch dos quizzes foi simplificada.
+  
+  // ✅ Mantemos este useEffect da branch "main"
+  // para "escutar" a contagem de quizzes em TEMPO REAL.
   useEffect(() => {
-    const fetchProgressSummary = async () => {
-      if (!currentUser) return;
-      const progressCollectionRef = collection(db, "users", currentUser.uid, "quizProgress");
-      const querySnapshot = await getDocs(progressCollectionRef);
+    if (!currentUser) return;
+
+    const progressCollectionRef = collection(
+      db,
+      "users",
+      currentUser.uid,
+      "quizProgress"
+    );
+    const q = query(progressCollectionRef);
+    
+    // onSnapshot garante que a contagem de quizzes seja sempre a mais atual.
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setQuizzesFeitos(querySnapshot.size);
-    };
-    fetchProgressSummary();
+    });
+
+    // Função de limpeza para parar de "escutar" quando o usuário sair da página.
+    return () => unsubscribe();
   }, [currentUser]);
 
-  // ❌ REMOVIDO: A variável 'firstName' não é mais necessária, pois vamos usar 'userName'
-  // const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split("@")[0] || "Usuário";
-
+  // ✅ Mantemos o estado de carregamento para uma melhor experiência de usuário.
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -92,7 +107,6 @@ export default function DashBoard() {
 
   return (
     <div className="relative w-full min-h-full bg-blue-50 overflow-hidden">
-      
       {/* 1. Imagem de fundo agora está 50% mais transparente (opacity-10) */}
       <img
         src="/welcome-illustration.svg"
@@ -102,7 +116,6 @@ export default function DashBoard() {
       />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 py-16">
-        
         {/* Seção de Boas-vindas (sem o botão) */}
         <section className="text-center mb-16">
           {/* ✅ CORRIGIDO: Agora usa o estado 'userName' */}
@@ -110,8 +123,7 @@ export default function DashBoard() {
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             {quizzesFeitos > 0
               ? `Você já completou ${quizzesFeitos} quiz(zes). Continue seu aprendizado!`
-              : "Explore as seções abaixo para começar sua jornada no mundo da programação."
-            }
+              : "Explore as seções abaixo para começar sua jornada no mundo da programação."}
           </p>
         </section>
 
@@ -126,7 +138,9 @@ export default function DashBoard() {
               <div className="bg-blue-100 p-4 rounded-full mb-4">
                 {card.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">{card.title}</h3>
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                {card.title}
+              </h3>
               <p className="text-gray-600 text-sm leading-relaxed tracking-wide flex-grow">
                 {card.desc}
               </p>
@@ -136,14 +150,13 @@ export default function DashBoard() {
 
         {/* 3. Botão "Comece a aprender" agora está aqui, abaixo dos cards */}
         <section className="mt-16 text-center">
-            <Link
-                to="/termos"
-                className="inline-block px-8 py-3 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition shadow-lg"
-            >
-                Comece a aprender
-            </Link>
+          <Link
+            to="/termos"
+            className="inline-block px-8 py-3 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition shadow-lg"
+          >
+            Comece a aprender
+          </Link>
         </section>
-        
       </div>
     </div>
   );
