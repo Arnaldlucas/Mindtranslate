@@ -1,9 +1,11 @@
+// DashBoard.jsx (Código corrigido)
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { db } from "./firebase-config";
-import { collection, getDocs } from "firebase/firestore";
-import { BookOpen, HelpCircle, BarChart3 } from "lucide-react";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore"; // Importe 'doc' e 'getDoc'
+import { BookOpen, HelpCircle, BarChart3, Loader } from "lucide-react";
 
 // O array de cards agora é a nossa única fonte para os cards.
 const staticCards = [
@@ -33,19 +35,60 @@ const staticCards = [
 export default function DashBoard() {
   const { currentUser } = useAuth();
   const [quizzesFeitos, setQuizzesFeitos] = useState(0);
+  
+  // ✅ NOVO: Adiciona um estado para armazenar o nome do usuário vindo do Firestore
+  const [userName, setUserName] = useState("Usuário");
+  const [loading, setLoading] = useState(true);
 
-  // A lógica de fetch foi simplificada, pois não precisamos mais dos detalhes do último quiz.
+  // ✅ NOVO: useEffect para buscar o nome do usuário no Firestore
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          // Se o documento existe, pega o nome e atualiza o estado
+          setUserName(docSnap.data().name);
+        } else {
+          console.log("Nenhum nome encontrado no Firestore.");
+          // Mantém o nome padrão "Usuário"
+        }
+      } catch (err) {
+        console.error("Erro ao buscar o nome:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserName();
+  }, [currentUser]);
+
+  // A lógica de fetch dos quizzes foi simplificada.
   useEffect(() => {
     const fetchProgressSummary = async () => {
       if (!currentUser) return;
       const progressCollectionRef = collection(db, "users", currentUser.uid, "quizProgress");
       const querySnapshot = await getDocs(progressCollectionRef);
-      setQuizzesFeitos(querySnapshot.size); // .size é mais eficiente que .docs.map().length
+      setQuizzesFeitos(querySnapshot.size);
     };
     fetchProgressSummary();
   }, [currentUser]);
 
-  const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split("@")[0] || "Usuário";
+  // ❌ REMOVIDO: A variável 'firstName' não é mais necessária, pois vamos usar 'userName'
+  // const firstName = currentUser?.displayName?.split(" ")[0] || currentUser?.email.split("@")[0] || "Usuário";
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader className="animate-spin text-blue-600" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full min-h-full bg-blue-50 overflow-hidden">
@@ -62,7 +105,8 @@ export default function DashBoard() {
         
         {/* Seção de Boas-vindas (sem o botão) */}
         <section className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {firstName}!</h2>
+          {/* ✅ CORRIGIDO: Agora usa o estado 'userName' */}
+          <h2 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {userName.split(" ")[0]}!</h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             {quizzesFeitos > 0
               ? `Você já completou ${quizzesFeitos} quiz(zes). Continue seu aprendizado!`
