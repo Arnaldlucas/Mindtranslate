@@ -102,7 +102,7 @@ export default function Register() {
           </div>
         
 
-          <div> <!-- Adicionado-->
+          <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirme a senha</label>
             <input
               id="confirmPassword"
