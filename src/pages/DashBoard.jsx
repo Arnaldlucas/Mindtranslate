@@ -106,7 +106,7 @@ export default function DashBoard() {
         {/* Seção de Boas-vindas (sem o botão) */}
         <section className="text-center mb-16">
           {/* ✅ CORRIGIDO: Agora usa o estado 'userName' */}
-          <h2 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {userName.split(" ")[0]}!</h2>
+          <h1 className="text-4xl font-bold mb-2 text-gray-900">Bem-vindo, {userName.split(" ")[0]}!</h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             {quizzesFeitos > 0
               ? `Você já completou ${quizzesFeitos} quiz(zes). Continue seu aprendizado!`
