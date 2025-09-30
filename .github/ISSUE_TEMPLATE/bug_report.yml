@@ -1,0 +1,100 @@
+name: "Relatar Bug"
+description: "Use este formulário para relatar um problema encontrado."
+title: "Descreva brevemente o problema"
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por relatar um problema!  
+        Por favor, preencha o formulário abaixo com o máximo de detalhes possível.
+
+  - type: input
+    id: versao
+    attributes:
+      label: "Versão"
+      description: "Versão do Sistema"
+      placeholder: "Exemplo: v1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: plataforma
+    attributes:
+      label: "Plataforma"
+      description: "UNIX: saída de `uname -a` | Windows: saída de `($([Environment]::OSVersion.VersionString) $(('x86','x64')[[Environment]::Is64BitOperatingSystem]))` no PowerShell."
+      placeholder: "Cole aqui a saída do comando"
+    validations:
+      required: true
+
+  - type: input
+    id: subsistema
+    attributes:
+      label: "Subsistema"
+      description: "Se souber, informe o módulo central afetado."
+      placeholder: "Exemplo: fs, http, stream"
+
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: "Evidências: Quais passos reproduzem o bug?"
+      description: "Insira detalhes claros sobre como reproduzir o erro. Se possível, forneça código e texto em vez de prints."
+      placeholder: |
+        Passo 1: ...
+        Passo 2: ...
+        Código:
+        ```js
+        console.log('Exemplo');
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: frequencia
+    attributes:
+      label: "Com que frequência isso ocorre? Existe alguma condição específica?"
+      description: "Explique se o problema acontece sempre, às vezes, ou apenas sob certas condições."
+      placeholder: "Exemplo: Sempre que executo X após Y."
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento_esperado
+    attributes:
+      label: "Qual é o comportamento esperado?"
+      description: "Explique o que você esperava que acontecesse. Se possível, forneça saída textual em vez de prints."
+      placeholder: "Exemplo: O comando deveria retornar `Hello World`."
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamento_atual
+    attributes:
+      label: "O que você vê em vez disso?"
+      description: "Explique o comportamento inesperado observado. Se possível, forneça saída textual em vez de prints."
+      placeholder: "Exemplo: O comando retorna `undefined`."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: classificacao_bug
+    attributes:
+      label: Classificação do Bug
+      description: Selecione a categoria que melhor descreve o bug.
+      multiple: true
+      options:
+        - Sintaxe
+        - Lógica
+        - Runtime
+        - Concorrência
+        - Performance
+        - Segurança
+    validations:
+      required: true
+
+  - type: textarea
+    id: informacoes_adicionais
+    attributes:
+      label: "Informações adicionais"
+      description: "Nos conte qualquer outra coisa relevante que possamos precisar saber."
+      placeholder: "Exemplo: acontece apenas em containers Docker."
