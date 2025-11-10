@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { NavLink, Link, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import {
-  BookOpen,
-  HelpCircle,
-  BarChart3,
-  User,
-  LogOut,
-  Brain,
-  Menu,
-  X,
-} from "lucide-react";
+import { BookOpen, HelpCircle, Home, User, LogOut, Brain, Menu, X, BarChart3 } from "lucide-react";
 
 const NavItem = ({ to, icon: Icon, children, onClick }) => (
   <NavLink
@@ -59,7 +50,7 @@ export default function Layout() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-1">
-            <NavItem to="/dashboard" icon={BarChart3}>
+            <NavItem to="/dashboard" icon={Home}>
               Início
             </NavItem>
             <NavItem to="/termos" icon={BookOpen}>
@@ -114,7 +105,7 @@ export default function Layout() {
           <nav className="md:hidden bg-white border-t p-4 space-y-2">
             <NavItem
               to="/dashboard"
-              icon={BarChart3}
+              icon={Home}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Início
